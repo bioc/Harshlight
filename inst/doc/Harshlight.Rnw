@@ -1,0 +1,127 @@
+% -*- mode: noweb; noweb-default-code-mode: R-mode; -*-
+%\VignetteIndexEntry{Harshlight}
+%\VignetteKeywords{Harshlight}
+%\VignetteDepends{affy}
+%\VignettePackage{Harshlight}
+%documentclass[12pt, a4paper]{article}
+\documentclass[12pt]{article}
+
+\usepackage{amsmath,pstricks}
+\usepackage{hyperref}
+\usepackage[authoryear,round]{natbib}
+
+\textwidth=6.2in
+\textheight=8.5in
+%\parskip=.3cm
+\oddsidemargin=.1in
+\evensidemargin=.1in
+\headheight=-.3in
+
+\newcommand{\scscst}{\scriptscriptstyle}
+\newcommand{\scst}{\scriptstyle}
+
+\author{Maurizio Pellegrino, Yupu Liang}
+\begin{document}
+\title{Harshlight: HowTo}
+
+\maketitle
+\tableofcontents
+\section{Introduction}
+This document describes briefly how to use the \verb+Harshlight+ package.
+
+\subsection{Background}
+Analysis of hybridized microarrays starts with scanning the fluorescent image. The quality of data scanned from a microarray is affected by a plethora of potential confounders, which may act during printing/manufacturing, hybridization, washing, and reading. For high-density oligonucleotide arrays (HDONAs) such as Affymetrix GeneChip oligonucleotide (Affy) arrays, each chip contains a number of probes specifically designed to assess the overall quality of the biochemistry, whose purpose is, e.g., to indicate problems with the biotinylated B2 hybridization.
+Affymetrix software and packages from Bioconductor project for R provide for a number of criteria and tools to assess overall chip quality, such as percent present calls, scaling factor, background intensity, raw Q, and degradation plots. However, these criteria and tools have little sensitivity to detect localized artifacts, like specks of dust on the face of the chip, which can substantially affect the sensitivity of detecting physiological (i.e., small) differences. In the absence of readily available safeguards to indicate potential physical blemishes, researchers are advised to carefully inspect the chip images visually. Unfortunately, it is impossible to visually detect any but the starkest artifacts against the background of hundreds of thousands of randomly allocated probes with high variance in affinity.
+
+\verb+Harshlight+ analyzes the content of Affymetrix microarray data stored in \verb+.CEL+ files, detecting and eliminating the artifacts that microarray images present on their surface.
+
+\subsection{Get started}
+
+This document outlines how to get the data from \verb+.CEL+ files and analyze it with \verb+Harshlight+.
+
+As a start, the package needs to be loaded in your \verb+R+ session.
+\begin{Sinput}
+R> library(Harshlight) ##load the Harshlight package
+\end{Sinput}
+<<echo=F,results=hide>>=
+library(Harshlight)
+@
+
+{\bf note: you need to have the \verb+affy+ package in your library in order for Harshlight to work.}
+
+\section{How-to}
+ \subsection{Reading .CEL files}
+
+Harshlight analyzes an Affybatch object, derived from your \verb+.CEL+ files.
+Use the function \verb+ReadAffy+ included in the \verb+affy+ package to read the information of .CEL files.
+
+\begin{verbatim}
+R> abatch <- ReadAffy(celfile.path = "path_to_CEL_file")
+\end{verbatim}
+
+This will read all the .CEL files found in "path\_to\_CEL\_file" and will store their information in \verb+abatch+ (Affybatch object).
+For more information on how to use \verb+ReadAffy+ refer to the \verb+affy+ help page, \verb+help(ReadAffy)+.
+
+\section{Harshlight}
+
+\subsection{Functions}
+
+The \verb+Harshlight+ package contains several functions for the detection of different kinds of artifacts. Once the affected probes are detected, the values of those probes in the chip are substituted (see \verb+Analysis+ or the R help file for the package).
+
+\verb+Harshlight+ is the main function that allows the detection of extended artifacts (i.e. blemishes that affect the overall chip), compact defects (i.e. blemishes that affect most of the probes in a circumscribed area), and diffuse defects (i.e. blemishes that cover large areas on the surface of the chip but do not affect all the probes in that area). The defects are detected in that order; all blemishes found in a round of detection are eliminated before the next round starts.
+
+\verb+HarshExt+ is used to detect only extended blemishes; neither compact nor diffuse blemishes are considered.
+
+\verb+HarshComp+ is used when only the detection of extended and compact blemishes is desired, while diffuse blemishes are ignored.
+
+Harshlight makes use of several user-tunable parameters in order to best detect the blemishes on the chips. For a more detailed description of the parameters refer to the package help page.
+
+\subsection{Analysis}
+
+The functions found in \verb+Harshlight+ perform the analysis detecting the different blemishes previously described. Once found, the user has the option to substitute the defects with two values: the median value of the same pixel in the other chips (default), or NA. The first option is preferred, for example, when the microarray batch will be subject to other analyses that do not accept NA values (e.g. rma).
+
+\begin{verbatim}
+R> abatch.Harshlight <- Harshlight(affy.object = abatch, na.sub = FALSE)
+\end{verbatim}
+
+To run \verb+Harshlight+ on a sample \verb+affybatch+ object, download the file example.rda in your working directory from our website http://asterion.rockefeller.edu/Harshlight/ and load it into your environment.
+
+\begin{verbatim}
+R> load('example.rda')
+\end{verbatim}
+
+Then run \verb+Harshlight+ and store the result in another object.
+
+\begin{verbatim}
+R> harsh.affybatch <- Harshlight(my.affybatch,report.name='MyReport.ps')
+\end{verbatim}
+
+\verb+Harshlight+ writes a report specified by the variable \verb+report.name+ at the end of the analysis, with a summary of what was found in the microarrays. The file is in \verb+.ps+ format: this can be read by readers such as \verb+Ghostscript+.
+
+The results of the analysis are stored in \verb+harsh.affybatch+. This is an \verb+affybatch+ object in which the affected values were substituted. Once this is done, the \verb+affybatch+ object can be written back into \verb+.CEL+ files using the add-on package \verb+Helper+ (donwloadable from the web site http://asterion.rockefeller.edu/Harshlight/).
+
+You can then continue analyzing your microarray chips with other programs.
+For example:
+
+\begin{verbatim}
+R> harsh.mas5 <- mas5(harsh.affybatch)
+R> harsh.rma  <- rma(harsh.affybatch)
+\end{verbatim}
+
+\section{References}
+
+For more information on the algorithm behind the package, see the reference below.
+
+\begin{verbatim}
+Harshlight: a "corrective make-up" program for microarray chips
+Mayte Suarez-Farinas*, Maurizio Pellegrino*, Knut M Wittkowski and Marcelo O Magnasco, BMC Bioinformatics 2005 Dec 10; 6(1):294
+*These two authors contributed equally
+\end{verbatim}
+
+For problems, bug reports, and questions, write to:
+
+\begin{verbatim}
+Maurizio Pellegrino, mpellegri@rockefeller.edu
+\end{verbatim}
+
+\end{document}
