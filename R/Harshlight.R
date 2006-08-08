@@ -271,10 +271,10 @@ Harshlight <- function(affy.object, my.ErrorImage = NULL, extended.radius = 10, 
 		result <- .AnalyzeChip(ErrorInt[,i], extended.radius = extended.radius, compact.quant.bright = compact.quant.bright, compact.quant.dark = compact.quant.dark, compact.size.limit = compact.size.limit, compact.connect = compact.connect, compact.pval = compact.pval, diffuse.bright = diffuse.bright, diffuse.dark = diffuse.dark, diffuse.pval = diffuse.pval, diffuse.connect = diffuse.connect, diffuse.radius = diffuse.radius, diffuse.size.limit = diffuse.size.limit, percent.contiguity = percent.contiguity, NROW = NROW, NCOL = NCOL, diffuse.close = diffuse.close, p.values.bright = p.values.bright, p.values.dark = p.values.dark, report.name = report.name)
 
 		if(!na.sub){
-			intensity(affy.object[,i])[is.na(result)] <- apply(int.subs[is.na(result),-i], 1, median)
+			intensity(affy.object)[,i][is.na(result)] <- apply(int.subs[is.na(result),-i], 1, median)
 			#int.chips[,i][is.na(result)] <- apply(int.subs[is.na(result),-i], 1, median)
 		} else {
-			intensity(affy.object[,i])[is.na(result)] <- NA
+			intensity(affy.object)[,i][is.na(result)] <- NA
 			#int.chips[,i][is.na(result)] <- NA
 		}
 
