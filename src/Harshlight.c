@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
-#include <malloc.h>
+//#include <malloc.h>
 #include <math.h>
 #include <unistd.h>
 #include <R.h>
