@@ -1438,7 +1438,7 @@ void report_overall_header(char **fname, int *ext_rad, double *comp_q_br, double
   PP "%%%%EndComments\n");
   PP "%%%%Page: 1 1\n");
   PP "grestore gsave /Times-Roman findfont %d scalefont setfont\n %d %d moveto (Harshlight report: ", 12, 25, 755);
-  PP "%s) show\n %d %d moveto (Version 1.1.0) show\n", asctime(localtime(&curr_time)), 490, 755);
+  PP "%s) show\n %d %d moveto (Version 1.6.0) show\n", asctime(localtime(&curr_time)), 490, 755);
 
   PP "%d %d moveto (EXTENDED defects:) show\n", x_text2, y_text - 25);
   PP "%d %d moveto (radius of the median kernel) show\n", x_text, y_text - 40);
