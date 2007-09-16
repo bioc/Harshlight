@@ -4,6 +4,8 @@
   dyn.load("path_to_library/name_of_library")
   .C("name_of_the_function_called",
   as.type_arg1(arg1),as.type_arg2(arg2), DUP = FALSE)
+
+It seems that we don't need malloc.h at all --yupu April 09 & this is causing trouble on Mac
 */
 
 #include <stdlib.h>
@@ -37,6 +39,7 @@ int *curr_tmp;
 
 time_t curr_time;
 
+
 #define CUTOFF_1 1
 #define NAN_SUB 100000
 #define PSCANDO { if(!ps_able) return; }
@@ -62,6 +65,7 @@ void init_harshlight(int *row_size, int *col_size, int *chips, int *status); //s
 
 void extended_defects(double *list, double *med_obs, int *r, int* status); //calculate the median of a swliding window, used in the recognition of big defects, deals with boundary effects with matrix border duplication
 double median(double *vector, int nelem, int valid_elem); //calculate the median
+double median_yupu(double *vector,int valid_elem); //calculate the median without sorting
 void sort_vector(double *vector, int nelem); //implementation of the quicksort algorithm to sort the values found in *vector array
 
 // Small defects and clustering methods
@@ -105,7 +109,7 @@ double* duplicate_borders(double *list, int radius, int *status); //build a new 
 
 void ErrorInt_row(double *list, int *size,int *status);
 void norm(double *list, int *size,int *status);
-int  handle_NA(double *list, int size);
+int  handle_NA(double *list, double *list2,int size);
 
 void test(char **array, int *status);
 
@@ -474,6 +478,73 @@ double median(double *vector, int nelem, int valid_elem){
   }
 
 }
+
+
+
+/*
+ * Algorithm from N. Wirth's book, implementation by N. Devillard.
+ * This code in public domain.
+ */
+
+
+typedef double elem_type ;
+
+#define ELEM_SWAP(a,b) { register elem_type t=(a);(a)=(b);(b)=t; }
+
+
+/*---------------------------------------------------------------------------
+   Function :   kth_smallest()
+   In       :   array of elements, # of elements in the array, rank k
+   Out      :   one element
+   Job      :   find the kth smallest element in the array
+   Notice   :   use the median() macro defined below to get the median. 
+
+                Reference:
+
+                  Author: Wirth, Niklaus 
+                   Title: Algorithms + data structures = programs 
+               Publisher: Englewood Cliffs: Prentice-Hall, 1976 
+    Physical description: 366 p. 
+                  Series: Prentice-Hall Series in Automatic Computation 
+
+ ---------------------------------------------------------------------------*/
+
+
+elem_type kth_smallest(elem_type a[], int n, int k)
+{
+    int i,j,l,m ;
+    register elem_type x ;
+
+    l=0 ; m=n-1 ;
+    while (l<m) {
+        x=a[k] ;
+        i=l ;
+        j=m ;
+        do {
+            while (a[i]<x) i++ ;
+            while (x<a[j]) j-- ;
+            if (i<=j) {
+                ELEM_SWAP(a[i],a[j]) ;
+                i++ ; j-- ;
+            }
+        } while (i<=j) ;
+        if (j<k) l=i ;
+        if (k<i) m=j ;
+    }
+    return a[k] ;
+}
+
+
+#define median_yupu(a,n) kth_smallest(a,n,(((n)&1)?((n)/2):(((n)/2)-1)))
+
+
+
+
+
+
+
+
+
 
 void extended_defects(double *list, double *med_obs, int *r, int *status){
 
@@ -1219,23 +1290,30 @@ void simulations(int *phistogram, double *N, int *choice, int *status)
 
 //Yupu's functions
 
-int handle_NA(double *list, int size){
+int handle_NA(double *list, double *list2,int size){
   int i;
   int valid = size;
+  int j = 0;
   for(i = 0; i< size; i++){
     if(isnan(list[i])){
       list[i] = NAN_SUB;
       valid--;
+    }
+    //copy the not NA value to another array
+    else{
+      list2[j]= list[i];
+      j++;
     }
   }
   return valid;
 }
       
 void norm(double *list, int *size,int *status){
+
   
-  int valid_count = handle_NA(list,*size);
+ 
   int i;
-  double *sorted;
+  double *sorted; double *sorted2;
 
   if((sorted = (double *)malloc(*size*sizeof(double))) == NULL){
     Rprintf("norm: Cannot allocate memory for the sorted array!\n");
@@ -1245,11 +1323,20 @@ void norm(double *list, int *size,int *status){
     return;
   }
 
-  for(i = 0; i < *size; i++){
-    sorted[i] = list[i];
-  }
-  double med = median(sorted,*size,valid_count);
+ 
+  int valid_count = handle_NA(list,sorted,*size);
+ 
+
   
+  
+  // double med = median(sorted,valid_count,valid_count);
+
+  //Rprintf("med %f\n", med);
+  double med = median_yupu(sorted,valid_count);
+
+  //Rprintf("med yupu%f\n",med_yupu);
+
+ 
   for(i = 0; i < valid_count; i++){
     list[i] -= med;
   }
@@ -1257,11 +1344,7 @@ void norm(double *list, int *size,int *status){
 }
 
 void ErrorInt_row(double *list, int *size, int *status){
-  
-  
-  
-  int valid_count = handle_NA(list,*size);
-  int i;
+   int i;
   double *sorted;
 
   if((sorted = (double *)malloc(*size*sizeof(double))) == NULL){
@@ -1272,10 +1355,9 @@ void ErrorInt_row(double *list, int *size, int *status){
     return;
   }
 
-  for(i = 0; i < *size; i++){
-    sorted[i] = list[i];
-  }
-  double med = median(sorted,*size,valid_count);
+  int valid_count = handle_NA(list,sorted,*size);
+ 
+  double med = median_yupu(sorted,valid_count);
   //Rprintf("median: %f\n",med);
   
 
@@ -1288,105 +1370,7 @@ void ErrorInt_row(double *list, int *size, int *status){
   return;
 }
 
-//should worry about the NA point later
-void ErrorInt_row2(double *list, int *size, int *status){
-  double *sorted_row;
-  int *rank_array;
-  if((sorted_row = (double *)malloc(*size*sizeof(double))) == NULL){
-    Rprintf("ErrorInt_row: Cannot allocate memory for the sorted array!\n");
-    Rprintf("size %d\n", *size);
-    *status = 1;
-    fflush(stderr);
-    return;
-  }
 
-  if((rank_array = (int *)malloc(*size*sizeof(int))) == NULL){
-    Rprintf("ErrorInt_row: Cannot allocate memory for the index array!\n");
-    Rprintf("size %d\n", *size);
-    *status = 1;
-    fflush(stderr);
-    return;
-  }
-  int valid_count = handle_NA(list,*size);
- 
-  //copy the list
-  int i;
-  
-  for(i = 0; i < *size; i++){
-    sorted_row[i] = list[i];
-  }
-  
-  //sort the list
-  sort_vector(sorted_row,*size);
-  
-  
-  //rank the list in running time O(n^2) 
-  int j;
-  for(i = 0; i < *size; i++){
-    
-    double ele = sorted_row[i];
-    for(j =0; j < *size; j++){
-      if(ele == list[j]){
-	rank_array[j] = i;
-      }
-    }
-  }
-  
-  //set the even boolean; get the 'middle'
-  int magic;
-  int even;
-  if(valid_count %2){ 
-    magic = (valid_count+1)/2-1;
-    even = 0; 
-  }
-  else{
-    magic = valid_count/2-1;
-    even = 1;
-  }
-  
-  /*test setting up value
-    for(i = 0; i < *size;i++){
-    list[i] = 10000;
-    }
-  */
-  //get the error image
-  for(i = 0; i< *size; i++){
-    int index = rank_array[i]; //get rank
-    if(index >= valid_count){
-      
-      //do nothing here for those NA elements
-    }
-    else if(even){
-      //left wing
-      if(index <= magic){
-	list[i] = list[i] - sorted_row[magic+1];
-      }
-      //right wing
-      else{
-	list[i] = list[i] - sorted_row[magic];
-      }
-    }
-    else{
-      //middle point
-      if(index == magic){
-	list[i] =0;
-      }
-      //left wing
-      else if(index < magic){
-	list[i] = list[i]-((sorted_row[magic]+sorted_row[magic+1])/2);
-      }
-      //right wing
-      else{
-	list[i] = list[i] -((sorted_row[magic-1]+sorted_row[magic])/2);
-      }
-    }
-  }
-  
-  free(sorted_row);
-  free(rank_array);
-  *status = 0;
-  return;
-}
 
 /* REPORT */
 /*********************
@@ -1454,7 +1438,7 @@ void report_overall_header(char **fname, int *ext_rad, double *comp_q_br, double
   PP "%%%%EndComments\n");
   PP "%%%%Page: 1 1\n");
   PP "grestore gsave /Times-Roman findfont %d scalefont setfont\n %d %d moveto (Harshlight report: ", 12, 25, 755);
-  PP "%s) show\n %d %d moveto (Version 1.1.2) show\n", asctime(localtime(&curr_time)), 490, 755);
+  PP "%s) show\n %d %d moveto (Version 1.1.0) show\n", asctime(localtime(&curr_time)), 490, 755);
 
   PP "%d %d moveto (EXTENDED defects:) show\n", x_text2, y_text - 25);
   PP "%d %d moveto (radius of the median kernel) show\n", x_text, y_text - 40);
@@ -1480,14 +1464,14 @@ void report_overall_header(char **fname, int *ext_rad, double *comp_q_br, double
   PP "%d %d moveto (%d pixels) show\n", x_text_val, y_text - 155, *comp_size);
 
   PP "%d %d moveto (minimum density) show\n", x_text, y_text - 170);
-  PP "%d %d moveto (%.2f%%) show\n", x_text_val, y_text - 170, *perc_empt);
+  PP "%d %d moveto (%.2f%) show\n", x_text_val, y_text - 170, *perc_empt);
 
   PP "%d %d moveto (DIFFUSE defects) show\n", x_text2, y_text - 200);
   PP "%d %d moveto (percent of increase in intensity (bright outliers)) show\n", x_text, y_text - 215);
-  PP "%d %d moveto (%.2f%%) show\n", x_text_val, y_text - 215, *diff_br);
+  PP "%d %d moveto (%.2f%) show\n", x_text_val, y_text - 215, *diff_br);
 
   PP "%d %d moveto (percent of decrease in intensity (dark outliers)) show\n", x_text, y_text - 230);
-  PP "%d %d moveto (%.2f%%) show\n", x_text_val, y_text - 230, *diff_dr);
+  PP "%d %d moveto (%.2f%) show\n", x_text_val, y_text - 230, *diff_dr);
 
   PP "%d %d moveto (p-value of the binomial test) show\n", x_text, y_text - 245);
   PP "%d %d moveto (%.3f) show\n", x_text_val, y_text - 245, *diff_bin);
@@ -1521,7 +1505,7 @@ void chip_overall_header(int *chip_number, char **chip_name){
 
   PP "%%%%Page: %d %d\n", *chip_number + 1, *chip_number + 1);
   PP "grestore gsave /Times-Roman findfont %d scalefont setfont\n %d %d moveto (Harshlight report: ", 12, 25, 755);
-  PP "%s) show\n %d %d moveto (Version 1.1.2) show\n", asctime(localtime(&curr_time)), 490, 755);
+  PP "%s) show\n %d %d moveto (Version 0.1-1) show\n", asctime(localtime(&curr_time)), 490, 755);
   PP "%d %d moveto (page %d of %d) show\n", 25, 18, *(chip_number) + 1, num_pages);
   PP "/Times-Roman findfont %d scalefont setfont\n %d %d moveto (Chip number %d, \"%s\") show\n ", 15, 200, 710, *chip_number, *chip_name);
   PP "newpath %d %d moveto %d %d lineto stroke\n", 20, 750, 550, 750);
@@ -1545,7 +1529,7 @@ void chip_summary(double *var, int *num_c, int *num_d, double *perc_c, double *p
   int x_val_2 = x_val_1 + 100;
 
   PP "grestore gsave /Times-Roman findfont %d scalefont setfont\n %d %d moveto (Chip summary:) show\n", 12, x_text, y_text);
-  PP "%d %d moveto (Extended defects: the variance of the Error Image explained by the background is %.2f%%) show\n", x_text, y_text - 30, *var);
+  PP "%d %d moveto (Extended defects: the variance of the Error Image explained by the background is %.2f%) show\n", x_text, y_text - 30, *var);
 
   PP "%d %d moveto (compact) show\n", x_text + 250, y_text - 60);
   PP "%d %d moveto (diffuse) show\n", x_text + 350, y_text - 60);
@@ -1555,8 +1539,8 @@ void chip_summary(double *var, int *num_c, int *num_d, double *perc_c, double *p
   PP "%d %d moveto (%d) show\n", x_val_2, y_text - 80, *num_d);
 
   PP "%d %d moveto (Percent of the surface covered by the defects:) show\n", x_text, y_text - 100);
-  PP "%d %d moveto (%.2f%%) show\n", x_val_1, y_text - 100, *perc_c);
-  PP "%d %d moveto (%.2f%%) show\n", x_val_2, y_text - 100, *perc_d);
+  PP "%d %d moveto (%.2f%) show\n", x_val_1, y_text - 100, *perc_c);
+  PP "%d %d moveto (%.2f%) show\n", x_val_2, y_text - 100, *perc_d);
   PP "showpage\n");
 }
 
@@ -1568,7 +1552,7 @@ void extended_stop(double *var){
   int y_text = 150;
 
   PP "grestore gsave /Times-Roman findfont %d scalefont setfont\n %d %d moveto (Chip summary:) show\n", 12, x_text, y_text);
-  PP "%d %d moveto (Extended defects: the variance of the Error Image explained by the background is %.2f%%) show\n", x_text, y_text - 30, *var);
+  PP "%d %d moveto (Extended defects: the variance of the Error Image explained by the background is %.2f%) show\n", x_text, y_text - 30, *var);
   PP "%d %d moveto (The chip has been discarded due to the extended defect.) show\n", x_text, y_text - 50);
   PP "%d %d moveto (Please note: it is recommended to repeat the analysis after discarding the chip from the AffyBatch.) show\n", x_text, y_text - 70);
   PP "showpage\n");

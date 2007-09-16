@@ -1,3 +1,4 @@
+
 ####################
 # HarshExt
 ####################
@@ -37,8 +38,11 @@ Harshlight <- function(affy.object, my.ErrorImage = NULL, extended.radius = 10, 
 		flush.console()
 		return()
 	}
-	NROW <- nrow(affy.object)
+	NROW<- nrow(affy.object)
 	NCOL <- ncol(affy.object)
+	NROW_new <- .GetBound(affy.object)$y2
+	#print (NROW_new)
+	#print (NROW)		
 
 	###########################################################################
 
@@ -53,6 +57,9 @@ Harshlight <- function(affy.object, my.ErrorImage = NULL, extended.radius = 10, 
 	int.chips <- intensity(affy.object)
 	int.subs <- int.chips
 
+
+
+	
 	if(!is.null(my.ErrorImage)){
 		if(class(my.ErrorImage) != 'matrix'){
 			print("Error: my.ErrorImage must be a valid matrix object")
@@ -268,14 +275,15 @@ Harshlight <- function(affy.object, my.ErrorImage = NULL, extended.radius = 10, 
 			PACKAGE = "Harshlight")
 		}
 
+
 		result <- .AnalyzeChip(ErrorInt[,i], extended.radius = extended.radius, compact.quant.bright = compact.quant.bright, compact.quant.dark = compact.quant.dark, compact.size.limit = compact.size.limit, compact.connect = compact.connect, compact.pval = compact.pval, diffuse.bright = diffuse.bright, diffuse.dark = diffuse.dark, diffuse.pval = diffuse.pval, diffuse.connect = diffuse.connect, diffuse.radius = diffuse.radius, diffuse.size.limit = diffuse.size.limit, percent.contiguity = percent.contiguity, NROW = NROW, NCOL = NCOL, diffuse.close = diffuse.close, p.values.bright = p.values.bright, p.values.dark = p.values.dark, report.name = report.name)
 
 		if(!na.sub){
-			intensity(affy.object)[,i][is.na(result)] <- apply(int.subs[is.na(result),-i], 1, median)
-			#int.chips[,i][is.na(result)] <- apply(int.subs[is.na(result),-i], 1, median)
-		} else {
-			intensity(affy.object)[,i][is.na(result)] <- NA
-			#int.chips[,i][is.na(result)] <- NA
+			int.chips[,i][is.na(result)] <- apply(int.subs[is.na(result),-i], 1, median)
+		}
+		else {
+			print("substitue na here")
+			int.chips[,i][is.na(result)] <- NA
 		}
 
 	}
@@ -289,33 +297,30 @@ Harshlight <- function(affy.object, my.ErrorImage = NULL, extended.radius = 10, 
 	flush.console()
 
 	rm(ErrorInt)
-
+	
+	#from yupu: change to assign the matrix all together to solve the memory problem Jan 10,2007
 	#for(i in 1:length(affy.object)){
 	#	intensity(affy.object)[,i] <- int.chips[,i]
 	#}
-
+	intensity(affy.object) = int.chips
 	rm(int.chips)
-
-	print(" Thanks for using Harshlight!")
-	print("Reference:")
-	print("Harshlight: a 'corrective make-up' program for microarray chips")
-	print("Mayte Suarez-Farinas*, Maurizio Pellegrino*, Knut M Wittkowski and Marcelo O Magnasco")
-	print("BMC Bioinformatics 2005 Dec 10; 6(1):294")
-	print("questions?: mpellegri@rockefeller.edu")
 
 	return(affy.object)
 }
 
-################
-# ErrorIntensity --- purpose is to produce the error matrices from a batch of chips
-################
+
+
 
 .ErrorIntensity <- function(object,transfo=log2){
 	# object	intensity of an affy object
+	#d0 = date()
 	if (is.function(transfo)) { object <- transfo(object) }
 
 	ncol = ncol(object)
 	nrow = nrow(object)
+
+
+
 	for(i in 1: nrow){
 		my_row <- object[i,]
 		bool_NA <- is.na(my_row)
@@ -356,8 +361,44 @@ Harshlight <- function(affy.object, my.ErrorImage = NULL, extended.radius = 10, 
 		object[,i] <- my_col
                     object[,i][bool_NA] <- NA
 	}
+	#d1 = date()
 	return(object)
+	#res <- list(E=E,d0 = d0,d1 =d1) 
 }
+
+#this is the function that get the non-empty bound of chip--yupu April 19
+
+.GetBound <-function(data){
+	cdf = getCdfEnvAffy(data) 
+	index = indexProbes.CdfEnvAffy(cdf,which=c("pm","mm"))
+	min_x = ncol(data)
+	min_y = nrow(data)
+	max_x = 0
+	max_y = 0
+
+	len = length(index)
+
+	for(i in 1:len){
+		xy = index2xy(cdf,index[[i]])
+		mi_x = min(xy[,1])
+		ma_x = max(xy[,1])
+
+		if(mi_x < min_x){min_x = mi_x}
+		if(ma_x > max_x){max_x = ma_x}
+
+		mi_y = min(xy[,2])
+		ma_y = max(xy[,2])
+
+		if(mi_y < min_y){min_y = mi_y}
+		if(ma_y > max_y){max_y = ma_y}
+	}
+	rm(cdf)
+	rm(index)
+	list(x1=min_x,x2=max_x,y1=min_y,y2=max_y)
+}
+
+
+
 
 ###############
 # AnalyzeChip --- purpose is to define the defected areas
@@ -373,7 +414,7 @@ Harshlight <- function(affy.object, my.ErrorImage = NULL, extended.radius = 10, 
 	################### BIG DEFECTS ########################
 
 	#Calculates the difference between the standard deviation of the error image and the median image.
-	#perc.var > 30% seems a good cutoff for big defected chips.
+	#perc.var > 35% seems a good cutoff for big defected chips.
 
 	dbg <- 0
 
@@ -581,6 +622,14 @@ Harshlight <- function(affy.object, my.ErrorImage = NULL, extended.radius = 10, 
 			as.double(stat.d$perc),
 			PACKAGE = "Harshlight")
 	
+		#trash <- .C("chip_summary",
+		#	as.double(perc.var),
+		#	as.integer(sum(cluster.stat.c)),
+		#	as.integer(sum(cluster.stat.d)),
+		#	as.double((sum(exist.cluster.c*cluster.stat.c[exist.cluster.c])/length(cluster.stat.c))*100),
+		#	as.double(cluster.stat.d.perc),
+		#	NAOK = TRUE,
+		#	PACKAGE = "Harshlight")
 	}
 
 	image1[image2 != 0] <- NaN
@@ -934,7 +983,9 @@ Harshlight <- function(affy.object, my.ErrorImage = NULL, extended.radius = 10, 
 
 .ScaleInt <- function(img){
 	
+	#q <- max(-quantile(img, .01, na.rm=T), quantile(img, .99, na.rm=T))
 	q <- max(-quantile(img, .001, na.rm = TRUE), quantile(img, .999, na.rm = TRUE))
+	#q <- max(-quantile(img, .0001, na.rm=T), quantile(img, .9999, na.rm=T))
 	img[img < (-q)]<- (-q)
 	img[img > ( q)]<- ( q)
 	image.min <- min(img)
@@ -1003,3 +1054,4 @@ Harshlight <- function(affy.object, my.ErrorImage = NULL, extended.radius = 10, 
 	return(img)
 
 }
+
