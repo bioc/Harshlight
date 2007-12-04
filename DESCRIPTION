@@ -2,7 +2,7 @@ Package: Harshlight
 Version: 1.9.0
 Date: 2007-9-15
 Title: A "corrective make-up" program for microarray chips
-Author: Mayte Suarez-Farinas, Maurizio Pellegrino, Knut M. Wittkwosky, Marcelo O. Magnasco
+Author: Mayte Suarez-Farinas, Maurizio Pellegrino, Knut M. Wittkowski, Marcelo O. Magnasco
 Maintainer: Maurizio Pellegrino <mpellegri@rockefeller.edu>
 Depends: R (>= 2.1.1), affy , altcdfenvs
 Description: The package is used to detect extended, diffuse and compact blemishes on microarray chips. Harshlight automatically marks the areas in a collection of chips (affybatch objects) and a corrected AffyBatch object is returned, in which the defected areas are substituted with NAs or the median of the values of the same probe in the other chips in the collection. The new version handle the substitue value as whole matrix to solve the memory problem.
