@@ -1,0 +1,10 @@
+useDynLib(Harshlight)
+
+importMethodsFrom(affy, intensity, "intensity<-")
+importMethodsFrom(altcdfenvs, index2xy)
+importMethodsFrom(Biobase, sampleNames)
+importFrom(altcdfenvs, getCdfEnvAffy, indexProbes.CdfEnvAffy)
+importFrom(stats, median, qnorm, quantile, sd)
+importFrom(utils, data, flush.console)
+
+export(HarshComp, HarshExt, Harshlight)
