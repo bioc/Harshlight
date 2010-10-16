@@ -1,6 +1,6 @@
 Package: Harshlight
-Version: 1.19.0
-Date: 2007-9-15
+Version: 1.19.1
+Date: 2010-10-16
 Title: A "corrective make-up" program for microarray chips
 Author: Mayte Suarez-Farinas, Maurizio Pellegrino, Knut M. Wittkowski, Marcelo O. Magnasco
 Maintainer: Maurizio Pellegrino <mpellegri@rockefeller.edu>
@@ -16,3 +16,4 @@ Description: The package is used to detect extended, diffuse and compact
              to solve the memory problem.
 License: GPL (>= 2)
 URL: http://asterion.rockefeller.edu/Harshlight/
+biocViews: Microarray, QualityControl, Preprocessing, AffymetrixChip, ReportWriting
