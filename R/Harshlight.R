@@ -133,7 +133,7 @@ Harshlight <- function(affy.object, my.ErrorImage = NULL, extended.radius = 10, 
 		status <- trash[[19]]
 
 		if(status){
-			print("An error occurre while trying to write to file")
+			print("An error occurred while trying to write to file")
 			print("The report file will not be created")
 			flush.console()
 			report.name <- 0
@@ -181,8 +181,9 @@ Harshlight <- function(affy.object, my.ErrorImage = NULL, extended.radius = 10, 
 			}else{
 				p.values.dark <- .RetrievePvalues_exact(compact.quant.dark, min.pval, sim.pval, length(ErrorInt[,1]/2))
 			}
-			rm("sim", envir = environment(Harshlight))
-	
+			#rm("sim", envir = environment(Harshlight))
+			rm("sim")
+
 		}else{
 			if(interpolate == FALSE){
 				if(i == 1){
@@ -231,7 +232,8 @@ Harshlight <- function(affy.object, my.ErrorImage = NULL, extended.radius = 10, 
 				}else{
 					p.values.dark <- .RetrievePvalues(compact.quant.dark, sim.int[,nbhood], sim.int[,nbhood + 1], length(ErrorInt[,1]/2))
 				}
-				rm("sim.int", envir = environment(Harshlight))
+				#rm("sim.int", envir = environment(Harshlight))
+				rm("sim.int")
 			}
 
 		}
@@ -366,7 +368,7 @@ Harshlight <- function(affy.object, my.ErrorImage = NULL, extended.radius = 10, 
 	#res <- list(E=E,d0 = d0,d1 =d1) 
 }
 
-#this is the function that get the non-empty bound of chip--yupu April 19
+#this is the function that gets the non-empty bound of chip--yupu April 19
 
 .GetBound <-function(data){
 	cdf = getCdfEnvAffy(data) 
@@ -717,7 +719,7 @@ Harshlight <- function(affy.object, my.ErrorImage = NULL, extended.radius = 10, 
 }
 
 #######################
-# RetrievePvalues_exact --- purpose is to assigne the best simulation according to the quantile used
+# RetrievePvalues_exact --- purpose is to assign the best simulation according to the quantile used
 #######################
 
 .RetrievePvalues_exact <- function(quantile.small, min.pval, sim.pval, size){
@@ -733,7 +735,7 @@ Harshlight <- function(affy.object, my.ErrorImage = NULL, extended.radius = 10, 
 }
 
 #######################
-# RetrievePvalues --- purpose is to assigne the best simulation according to the quantile used
+# RetrievePvalues --- purpose is to assign the best simulation according to the quantile used
 #######################
 
 .RetrievePvalues <- function(quantile.small, a, b, size){
