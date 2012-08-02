@@ -35,7 +35,7 @@ interpolate = TRUE, diffuse.close = TRUE)
 }
 \author{
  Mayte Suarez-Farinas, Maurizio Pellegrino, Knut M. Wittkwosky, Marcelo O. Magnasco
- \email{mpellegri@rockefeller.edu}
+ \email{mpellegri@berkeley.edu}
 }
 \examples{
 	## To run the example, download the affybatch object example.rda

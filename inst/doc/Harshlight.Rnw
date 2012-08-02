@@ -121,7 +121,7 @@ Mayte Suarez-Farinas*, Maurizio Pellegrino*, Knut M Wittkowski and Marcelo O Mag
 For problems, bug reports, and questions, write to:
 
 \begin{verbatim}
-Maurizio Pellegrino, mpellegri@rockefeller.edu
+Maurizio Pellegrino, mpellegri@berkeley.edu
 \end{verbatim}
 
 \end{document}

@@ -3,7 +3,7 @@ Version: 1.29.0
 Date: 2011-02-09
 Title: A "corrective make-up" program for microarray chips
 Author: Mayte Suarez-Farinas, Maurizio Pellegrino, Knut M. Wittkowski, Marcelo O. Magnasco
-Maintainer: Maurizio Pellegrino <mpellegri@rockefeller.edu>
+Maintainer: Maurizio Pellegrino <mpellegri@berkeley.edu>
 Depends: R (>= 2.10)
 Imports: affy, altcdfenvs, Biobase, stats, utils
 Description: The package is used to detect extended, diffuse and compact

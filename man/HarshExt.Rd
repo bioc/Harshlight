@@ -15,7 +15,7 @@ HarshExt is used to detect only extended defects on the surface of the chip. It 
 }
 \author{
  Mayte Suarez-Farinas, Maurizio Pellegrino, Knut M. Wittkwosky, Marcelo O. Magnasco
- \email{mpellegri@rockefeller.edu}
+ \email{mpellegri@berkeley.edu}
 }
 \references{
 	\url{http://asterion.rockefeller.edu/Harshlight/}

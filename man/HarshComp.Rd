@@ -29,7 +29,7 @@ HarshComp is used to detect extended and compact defects only.
 }
 \author{
  Mayte Suarez-Farinas, Maurizio Pellegrino, Knut M. Wittkwosky, Marcelo O. Magnasco
- \email{mpellegri@rockefeller.edu}
+ \email{mpellegri@berkeley.edu}
 }
 \references{
 	\url{http://asterion.rockefeller.edu/Harshlight/}
