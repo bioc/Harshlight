@@ -75,7 +75,7 @@ int max(int a, int b); //max between two integers
 int min(int a, int b); //min between two integers
 void recursive_filling_four(int *curr_point, int *list, int *cluster_number, int *cluster_size, int *cut, int *status); //cluster points with a recursive algorithm, 4-neighbourhood
 void recursive_filling_eight(int *curr_point, int *list, int *cluster_number, int *cluster_size, int *cut, int *status); //cluster points with a recursive algorithm, 8-neighbourhood
-inline void add_stack(int *list, int *spot, int *cluster_number, int *cluster_size); //used by recursive_filling functions
+static inline void add_stack(int *list, int *spot, int *cluster_number, int *cluster_size); //used by recursive_filling functions
 
 // Diffuse defects
 
@@ -154,7 +154,7 @@ void init_harshlight(int *row_size, int *col_size, int *chips, int *status){
 
 /* Functions */
 
-inline void add_stack(int *list, int *spot, int *cluster_number, int *cluster_size){
+static inline void add_stack(int *list, int *spot, int *cluster_number, int *cluster_size){
 
   /* Add the spot to the cluster, increase the size of the cluster and add the spot to the queue */
 
@@ -1464,7 +1464,7 @@ void report_overall_header(char **fname, int *ext_rad, double *comp_q_br, double
   PP "%d %d moveto (%d pixels) show\n", x_text_val, y_text - 155, *comp_size);
 
   PP "%d %d moveto (minimum density) show\n", x_text, y_text - 170);
-  PP "%d %d moveto (%.2f%) show\n", x_text_val, y_text - 170, *perc_empt);
+  PP "%d %d moveto (%.2f%%) show\n", x_text_val, y_text - 170, *perc_empt);
 
   PP "%d %d moveto (DIFFUSE defects) show\n", x_text2, y_text - 200);
   PP "%d %d moveto (percent of increase in intensity (bright outliers)) show\n", x_text, y_text - 215);
