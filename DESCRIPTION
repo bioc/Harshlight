@@ -1,5 +1,5 @@
 Package: Harshlight
-Version: 1.81.0
+Version: 1.81.1
 Date: 2011-02-09
 Title: A "corrective make-up" program for microarray chips
 Author: Mayte Suarez-Farinas, Maurizio Pellegrino, Knut M. Wittkowski,
@@ -19,3 +19,4 @@ License: GPL (>= 2)
 URL: http://asterion.rockefeller.edu/Harshlight/
 biocViews: Microarray, QualityControl, Preprocessing, OneChannel,
         ReportWriting
+PackageStatus: Deprecated
